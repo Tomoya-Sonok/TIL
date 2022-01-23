@@ -31,4 +31,28 @@ nodebrew use <バージョン>
 nodebrew selfupdate
 ```
 
---> .. depcheck や ncu のことを追記予定。
+# depcheck
+
+使用されていないパッケージを教えてくれるツール。
+
+## 使い方、使用例
+
+`npx depcheck` とコマンド実行するだけ。
+
+```
+# 未使用パッケージ削除前
+$ npx depcheck
+npx: 108個のパッケージを6.778秒でインストールしました。
+Unused dependencies
+* bootstrap
+* jquery
+* path
+Unused devDependencies
+* babel-eslint
+* casperjs
+
+# 未使用パッケージ削除後
+$ npx depcheck
+npx: 108個のパッケージを4.581秒でインストールしました。
+No depcheck issue
+```
