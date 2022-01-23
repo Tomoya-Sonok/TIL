@@ -1,0 +1,59 @@
+# template.yml
+
+Lambda や API Gateway の設定を書き込む。
+
+```yml
+AWSTemplateFormatVersion: '2010-09-09'
+
+# AWS SAM構文をCloudFormation用に変換する宣言
+Transform: 'AWS::Serverless-2016-10-31'
+
+# スタックの説明
+Description: An AWS Serverless Specification template describing your function.
+Resources:
+  TestProgram:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: Sonok-DevPT-TestProgram
+        Handler: index.handler
+        Runtime: nodejs14.x
+        Layers:
+          - !Ref SonokDevPTLayer1ForTestProgram
+          - !Ref SonokDevPTLayer2ForTestProgram
+        CodeUri: Tomoya-Sonok/TestProgram
+        DeploymentPreference:
+          Type: AllAtOnce
+        Description: 'API for some programs'
+        MemorySize: 256
+        Timeout: 60
+        Environment:
+          Variables:
+            TEST_TBL: 'Sonok-DevPT-Test_TBL'
+            LOG_LEVEL: 'DEBUG'
+            SOME_URL: 'http://something.com'
+        Role: 'arn:aws:iam::3512270356:role/Sonok-Test-Role'
+        VpcConfig:
+          SecurityGroupIds:
+            - sg-fg0wj04h02h024gr
+          SubnetIds:
+            - subnet-d6983hf39pgpw3
+            - subnet-u1h29f8h24982g
+            - subnet-u980gh0aw8h3gp
+        Tags:
+          Name: TestTag
+          Environment: dev
+```
+
+詳しくは、[この記事](https://www.wakuwakubank.com/posts/640-aws-sam/)を参照。
+
+# CloudWatch Logs
+
+## 監視設定のやり方
+
+監視したい CloudWatch のロググループごとに設定することができる。
+手順：
+
+1. メトリクスフィルターの作成
+2. アラーム定義の作成 or 既存アラーム定義との紐付け
+3. 通知したい SNS トピックを設定
+4. アラームが作成済みであることを確認
