@@ -1,8 +1,8 @@
-# template.yml
+# CloudFormation における template.yaml
 
 Lambda や API Gateway の設定を書き込む。
 
-```yml
+```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 
 # AWS SAM構文をCloudFormation用に変換する宣言
@@ -51,9 +51,70 @@ Resources:
 ## 監視設定のやり方
 
 監視したい CloudWatch のロググループごとに設定することができる。
+
+```
 手順：
 
 1. メトリクスフィルターの作成
 2. アラーム定義の作成 or 既存アラーム定義との紐付け
 3. 通知したい SNS トピックを設定
 4. アラームが作成済みであることを確認
+```
+
+# Step Functions
+
+Lambda 関数の実行時間 15 分制限やレスポンスデータ 1mb 制限を突破して、より複雑で重たい処理を実装したい時に使う。
+
+以下、ステートマシンの定義例。（States の種類や各項目の使用用途等については、[公式ドキュメント](https://docs.aws.amazon.com/ja_jp/step-functions/latest/dg/concepts-states.html)を参照）
+
+```json
+"Comment": "My First State Machine",
+"StartAt": "ConfigureCount",
+"States": {
+  "ConfigureCount": {
+    "Type": "Pass",
+    "Result": {
+      "count": 10,
+      "index": 0,
+      "step": 1
+    },
+    "ResultPath": "$.iterator",
+    "Next": "Iterator"
+  },
+  "Iterator": {
+    "Type": "Task",
+    "Resource": "arn:aws:lambda:ap-northeast-1:3512270810308:function:MyLambdaFunction",
+    "ResultPath": "$.iterator",
+    "Next": "IsCountReached"
+  },
+  "IsCountReached": {
+    "Type": "Choice",
+    "Choices": [
+      {
+        "Variable": "$.iterator.continue",
+        "BooleanEquals": true,
+        "Next": "LoopProcess"
+      },
+      {
+        "Variable": "$.error.exists",
+        "BooleanEquals": true,
+        "Next": "OutputException"
+      }
+    ],
+    "Default": "Done"
+  },
+  "LoopProcess": {
+    "Comment": "My application logic, to run a specific number of times",
+    "Type": "Pass",
+    "Result": {
+      "success": true
+    },
+    "ResultPath": "$.result",
+    "Next": "Iterator"
+  },
+  "Done": {
+    "Type": "Pass",
+    "End": true
+  }
+}
+```
