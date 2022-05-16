@@ -1,3 +1,26 @@
+# json ファイル => js ファイル
+
+json ではなく.js と拡張子を変えることで、コメントアウトが使用できる。  
+拡張子を変更後は、module.exports = を加えれば OK。
+
+## 例）Next.js の初期ファイルとして作成される eslint.json
+
+```json
+{
+  "extends": "next/core-web-vitals"
+}
+// json形式なのでコメントアウトできない
+```
+
+## 例）コメントアウトできるよう書き換えた eslint.js
+
+```js
+module.exports = {
+  extends: 'next/core-web-vitals',
+}
+// こっちはコメントアウトできる
+```
+
 # nodebrew
 
 Node.js のインストールやバージョン切り替えができる。
