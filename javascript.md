@@ -168,3 +168,74 @@ outputFib()
 
 例１でも例２でも、**if 文などを使って再帰関数が終了する条件（終了条件）を必ず書く必要があり、書かないと無限ループになってしまう**ので要注意。  
 また、処理速度やメモリを考慮すると再帰関数よりも for 文等のループ処理が優れている印象。もし再帰関数をどうしても使いたいケースがあれば、`メモ化`や`末尾再帰`を調べて取り入れることでパフォーマンスを最適化しよう。
+
+# Hoisting (巻き上げ)
+
+Hoisting(巻き上げ)とは、コードの実行時に関数や変数の`定義のみ`がスコープの先頭に巻き上げられること。これは、JavaScript がコード評価時に関数や変数を初期化前の状態としてメモリに一時保存される仕様によるもの。（以下の画像を参照）
+
+![hoisting](https://user-images.githubusercontent.com/50537591/173578193-7b1ade6c-56df-4ccd-aa49-33a08d2305aa.png)
+
+例１）関数の定義部分が巻き上げられ、宣言する前にその関数を呼び出す処理を書いても関数が正しく動く
+
+```js
+dogName('Komugi')
+
+function dogName(name) {
+  console.log("My dog's name is " + name)
+}
+/*
+実行結果: "My dog's name is Komugi"
+*/
+```
+
+ただし、上記のように関数宣言であれば先頭に巻き上げられて実行できるが、下記のように関数式を変数に代入した場合は`undefined` となってしまう。
+
+```js
+dogName('Komugi')
+
+var dogName = (name) => {
+  console.log("My dog's name is " + name)
+}
+/*
+実行結果: TypeError: dogName is not a function
+（var dogName という定義だけ先頭で実行され、varの仕様によりdogName = undefined となっているため。undefinedは関数ではないので、上記のようなエラーとなる。）
+*/
+```
+
+例２）変数の定義部分のみが巻き上げられ、初期化は行われていない
+
+```js
+console.log(num)
+
+var num // 宣言 ⇦ 巻き上げられる！
+num = 6 // 初期化 ⇦ 巻き上げられない！
+
+/*
+実行結果: undefined 
+（宣言のみが巻き上げられ、console.log()でログ出力する時点ではまだ初期化が行われていないため）
+*/
+```
+
+以下のコードでは初期化のみが行われていて巻き上げは行われていないので、変数を読み取ろうとすると ReferenceError 例外が発生する。
+
+```js
+console.log(num)
+num = 6 // 初期化
+
+/*
+実行結果: ReferenceError 例外が発生
+*/
+```
+
+## var と let/const で宣言した場合の挙動の違い
+
+上記で例で使用した`var`で宣言された変数には他の何かが割り当てられるまで undefined が初期値として与えられるが、`let`と`const`は undefined で初期化されないので参照しようとすると ReferenceError（参照エラー）となる。
+
+```js
+console.log(x) // undefined
+console.log(y) // ReferenceError: can't access lexical declaration `y' before initialization
+console.log(z) // ReferenceError: can't access lexical declaration `z' before initialization
+var x = 100
+let y = 200
+const z = 300
+```
