@@ -1,4 +1,86 @@
-# Context API
+# useRef()
+
+`useRef()`という hooks を使うと、紐づけた要素への参照が簡単にできるようになる。  
+Ref オブジェクト（ { current: _initialValue_( <- `useRef()`で設定する初期値)} ）を生成し、 `Refオブジェクト.current`に設定した値を変更したり自由に取り出して使うことができる。 絶対に押さえておきたいポイントは、**この Ref オブジェクトの current プロパティの値が変更されても、再レンダリングが行われないということ。**  
+（簡単なイメージでいうと、コンポーネントの再レンダリングを行わずに内部の値を保持して使いやすくできる箱を作る感じ）
+
+## 使い方
+
+```jsx
+import { useRef } from 'react'
+
+function App() {
+  // useRef()でRefオブジェクトを生成
+  const inputElmRef = useRef()
+
+  // Refオブジェクトを使うには、HTML要素にrefという属性でuseRef()で生成した値を渡す
+  return (
+    <>
+      <input type='text' ref={inputElmRef} />
+    </>
+  )
+  // たったこれだけで、
+  // inputElmRef.current.focus()で要素にフォーカスさせたり、
+  // inputElmRef.current.offsetHeightで要素の高さを取得できる
+}
+```
+
+また、再レンダリングが発生しない点を利用し、  
+そのページ内で一度だけ実行したい処理があるときは以下のような使い方もできる。
+
+```jsx
+const once = useRef(true)
+
+useEffect(() => {
+  if (!once.current) return
+  // 実行したい処理
+  once.current = false
+}, [])
+```
+
+↓↓↓ 以下、簡単な Todo アプリでの使用例 ↓↓↓
+
+```jsx
+import { useState, useRef } from 'React'
+import TodoList from './TodoList'
+// Todoのキー重複を避けるためのuuid
+import { v4 as uuidv4 } from 'uuid'
+
+function App() {
+  const [todos, setTodos] = useState([
+    // １つ目のTodoを仮設定しているだけ
+    { id: 1, name: 'Todo1', completed: false },
+  ])
+
+  // ここでRefオブジェクトを生成
+  const todoNameRef = useRef()
+
+  const handleAddTodo = () => {
+    // 下のinput要素に入力された値を参照して使う
+    const name = todoNameRef.current.value
+    setTodos((prevTodos) => {
+      // スプレッド構文でその時点のtodosを配列内で展開して、
+      // その中に新しいTodoのオブジェクトを追加する
+      return [...prevTodos, { id: uuidv4(), name: name, completed: false }]
+    })
+    // Todoを追加したら、Refオブジェクトをいったん空に戻す
+    todoNameRef.current.value = null
+  }
+
+  // 下記のinput要素のref属性でRefオブジェクトを紐づけているので、
+  // 「Add Task」ボタンが押下されて上のhandleAddTodo()が実行されるときに
+  // input要素に入力された値が todoNameRef.current.valueとして使うことができる
+  return (
+    <>
+      <TodoList todos={todos} />
+      <input type='text' ref={todoNameRef} />
+      <button onClick={handleAddTodo}>Add Task</button>
+    </>
+  )
+}
+```
+
+# useContext()
 
 Hooks の１つである`useContext()`を使用して、Context オブジェクトを扱える。
 
@@ -8,12 +90,12 @@ Context オブジェクトの中に`Context Provider`があり、これは対象
 
 ## App.js
 
-```react
-import "./App.css"
-import Board from "./components/Board"
-import Keyboard from "./components/Keyboard"
-import { boardDefault } from "./Words"
-import { createContext, useState } from "react"
+```jsx
+import './App.css'
+import Board from './components/Board'
+import Keyboard from './components/Keyboard'
+import { boardDefault } from './Words'
+import { createContext, useState } from 'react'
 
 // ※ Context API を使用
 // 以下のAppContext.Providerに入れたコンポーネント内で
@@ -24,14 +106,14 @@ function App() {
   const [board, setBoard] = useState(boardDefault)
   const [currAttempt, setCurrAttempt] = useState({ attempt: 0, letterPos: 0 })
   return (
-    <div className="App">
+    <div className='App'>
       <nav>
         <h1>Worlde</h1>
       </nav>
       <AppContext.Provider
         value={{ board, setBoard, currAttempt, setCurrAttempt }}
       >
-        <div className="game">
+        <div className='game'>
           <Board />
           <Keyboard />
         </div>
@@ -45,33 +127,33 @@ export default App
 
 ## Keyboard.js
 
-```react
-import React from "react"
-import Key from "./Key"
+```jsx
+import React from 'react'
+import Key from './Key'
 
 function Keyboard() {
-  const keys1 = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"]
-  const keys2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"]
-  const keys3 = ["Z", "X", "C", "V", "B", "N", "M"]
+  const keys1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P']
+  const keys2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
+  const keys3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
 
   return (
-    <div className="keyboard">
-      <div className="line1">
+    <div className='keyboard'>
+      <div className='line1'>
         {keys1.map((key) => {
           return <Key keyVal={key} />
         })}
       </div>
-      <div className="line2">
+      <div className='line2'>
         {keys2.map((key) => {
           return <Key keyVal={key} />
         })}
       </div>
-      <div className="line3">
-        <Key keyVal={"ENTER"} bigKey />
+      <div className='line3'>
+        <Key keyVal={'ENTER'} bigKey />
         {keys3.map((key) => {
           return <Key keyVal={key} />
         })}
-        <Key keyVal={"DELETE"} bigKey />
+        <Key keyVal={'DELETE'} bigKey />
       </div>
     </div>
   )
@@ -82,11 +164,12 @@ export default Keyboard
 
 ## Key.js
 
-```react
-import React, { useContext } from "react"
-import { AppContext } from "../App"
+```jsx
+import React, { useContext } from 'react'
+import { AppContext } from '../App'
 
 function Key({ keyVal, bigKey }) {
+  // ここが重要！
   const { board, setBoard, currAttempt, setCurrAttepmt } =
     useContext(AppContext)
 
@@ -97,7 +180,7 @@ function Key({ keyVal, bigKey }) {
     setCurrAttepmt({ ...currAttempt, letterPos: currAttempt.letterPos + 1 })
   }
   return (
-    <div className="key" id={bigKey && "big"} onClick={selectLetter}>
+    <div className='key' id={bigKey && 'big'} onClick={selectLetter}>
       {keyVal}
     </div>
   )
@@ -106,11 +189,4 @@ function Key({ keyVal, bigKey }) {
 export default Key
 ```
 
-App.js 内の Context Provider で今回使えるようにしたいコンテクスト（グローバル変数のようなもの）が利用可能な範囲を指定しており、その中に Keyboard.js がある。その Keyboard.js の子コンポーネントの Key.js にて、`Context Provider`を通して渡した currAttempt, setCurrAttempt を`useContext()`で使用している。
-
-# 参考
-
-[Build a Wordle Clone in ReactJS - Best React Project](https://www.youtube.com/watch?v=WDTNwmXUz2c&t=1893s)  
-[Context – React](https://reactjs.org/docs/context.html)  
-[useContext | Hooks API Reference – React](https://reactjs.org/docs/hooks-reference.html#usecontext)  
-[React Context API と useContext() の使い方](https://gotohayato.com/content/523/)
+App.js 内の Context Provider で今回使えるようにしたいコンテクスト（グローバル変数のようなもの）が利用可能な範囲を指定しており、その中に Keyboard.js がある。その Keyboard.js の子コンポーネントの Key.js にて、`useContext()`を用いたことで`Context Provider`を通して渡した currAttempt, setCurrAttempt を使用できるようになっている。
