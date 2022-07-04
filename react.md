@@ -1,3 +1,108 @@
+# useId()
+
+`useId()`は、クライアント側とサーバー側の両方で安定した一意の ID を生成する hooks である。
+
+例えば、以下のように label タグと input タグを`htmlFor`と`id`で紐づけることで、ラベルをクリックしても input タグがフォーカスされるようにしたいとき、例１のようなコードでは問題ないが、例２のような場合は id 重複が起きると最初の該当 id の要素（1 つ目の PersonForm コンポーネント）しかフォーカスされないという事象が発生してしまう。
+
+## 例１
+
+```jsx
+function PersonForm() {
+  return (
+    <div>
+      <label htmlFor={'firstName'}>First Name</label>
+      <div>
+        <input id={'firstName'} type='text' />
+      </div>
+      <label htmlFor={'lastName'}>Last Name</label>
+      <div>
+        <input id={'lastName'} type='text' />
+      </div>
+    </div>
+  )
+}
+```
+
+## 例２
+
+```jsx
+import { PersonForm } from './PersonForm'
+
+function App() {
+  return (
+    <>
+      <h1>Host</h1>
+      <PersonForm>
+      <h1>Guest</h1>
+      <PersonForm>
+    </>
+  )
+}
+
+export default App
+```
+
+```jsx
+function PersonForm() {
+  return (
+    <div>
+      <label htmlFor={'firstName'}>First Name</label>
+      <div>
+        <input id={'firstName'} type='text' />
+      </div>
+      <label htmlFor={'lastName'}>Last Name</label>
+      <div>
+        <input id={'lastName'} type='text' />
+      </div>
+    </div>
+  )
+}
+```
+
+これは id 重複が起きてしまうことによって生じる問題であるが、以下のように`useId()`を使うことで解決できる。
+
+## useId()を使用した場合
+
+```jsx
+import { PersonForm } from './PersonForm'
+
+function App() {
+  return (
+    <>
+      <h1>Host</h1>
+      <PersonForm>
+      <h1>Guest</h1>
+      <PersonForm>
+    </>
+  )
+}
+
+export default App
+```
+
+```jsx
+import { useId } from 'react'
+
+function PersonForm() {
+  // useId()で、:r0:や:ra:のように:で囲まれた一意の文字列が生成される
+  const id = useId()
+  return (
+    <div>
+      <label htmlFor={id + 'firstName'}>First Name</label>
+      <div>
+        <input id={id + 'firstName'} type='text' />
+      </div>
+      <label htmlFor={id + 'lastName'}>Last Name</label>
+      <div>
+        <input id={id + 'lastName'} type='text' />
+      </div>
+    </div>
+  )
+}
+```
+
+上記の例では、`:r1:-firstName`や`:r1:-lastName`でそれぞれ label 要素と input 要素が紐づけられることになる。同じ PersonForm コンポーネントが複数回レンダリングされるとしても、useId()で生成されるのは`:r2:`や`:r3:`のように一意の文字列なので、例２のような問題は防ぐことができる。
+
 # useRef()
 
 `useRef()`という hooks を使うと、紐づけた要素への参照が簡単にできるようになる。  
