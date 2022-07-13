@@ -295,3 +295,61 @@ export default Key
 ```
 
 App.js 内の Context Provider で今回使えるようにしたいコンテクスト（グローバル変数のようなもの）が利用可能な範囲を指定しており、その中に Keyboard.js がある。その Keyboard.js の子コンポーネントの Key.js にて、`useContext()`を用いたことで`Context Provider`を通して渡した currAttempt, setCurrAttempt を使用できるようになっている。
+
+# useMemo()
+
+`useMemo`は関数の結果を保持するための hooks で、何回やっても結果が同じ場合の値などを保存(メモ化)し、そこから値を再取得する。不要な再計算をスキップすることから、パフォーマンスの向上が期待できる。useCallback は関数自体をメモ化するが、useMemo は関数の結果を保持する。
+
+## メモ化
+
+メモ化とは、再レンダリングが走る時、不要な関数や値を再生成しないための処理。ブラウザのメモリに一時的に値を保存することで、不必要な処理が実行されるのを防ぎ、パフォーマンス最適化に繋がる。
+
+## 使い方
+
+```jsx
+// 基本形（depsは、useEffectでもおなじみの依存配列のこと）
+useMemo(() => someExpression, [deps])
+
+const [count, setCount] = useState(initialCount)
+
+// useMemoを使わない
+const result = () => count * 2)
+
+// useMemoを使う
+const result = useMemo(() => count * 2, [count])
+```
+
+依存配列に入っている`count`に変化があれば再計算するが、もし変化がなければ前回計算した値が result へ格納される。
+
+# useCallback()
+
+`useCallback`はメモ化されたコールバック関数を返す。
+
+## 使い方
+
+```jsx
+// 基本形（depsは、useEffectでもおなじみの依存配列のこと）
+useCallback(callbackFunction, [deps])
+
+// useCallbackを使わない
+const sampleFunc = () => {
+  doSomething(a, b)
+}
+
+// useCallbackを使う
+const sampleFunc = useCallback(() => {
+  doSomething(a, b)
+}, [a, b])
+```
+
+依存配列の要素 a,b のいずれかが変化した場合のみ、以前作ってメモ化した sampleFunc の値を再計算する。依存配列の要素に変化がなければ、前回の sampleFunc を再利用する。
+
+React.memo と併用することで、React.memo でメモ化したコンポーネントに useCallback でメモ化したコールバック関数を Props として渡し、コンポーネントの不要な再描画をスキップすることができパフォーマンスが上げることが可能。（むしろ React.memo と合わせて使わないと、メモ化していないコンポーネントに useCallback でメモ化した関数を props で渡しても結局再レンダリングされてしまう）
+
+---
+
+## どういった時にメモ化すべきか
+
+前提として、React は非常に最適化されており、そのままでも十分高速である。しかしバックエンド側のリファクタリングやコンポーネント設計でも改善されないほど動作が重たい場合などには、`useMemo`や`useCallback`等のメモ化の hooks を活用して関数の再実行やコンポーネントの再レンダリングを防ぐことを検討してみるべき。
+
+ちなみに、`useCallback(fn, deps)` と `useMemo(() => fn, deps)`は等価であり、おそらく関数をメモ化するときに useCallback の書き方のほうが使いやすいので実装された hooks だろうか。
